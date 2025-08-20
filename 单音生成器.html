@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>单音生成器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            color: #1a73e8;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        label {
+            margin-right: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        select, input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            width: 120px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        #piano {
+            margin: 20px 0;
+            position: relative;
+            height: 120px;
+            width: 100%;
+            max-width: 750px;
+            overflow-x: auto;
+        }
+        .key {
+            width: 30px;
+            height: 100px;
+            background-color: white;
+            border: 1px solid #ccc;
+            text-align: center;
+            line-height: 70px;
+            font-size: 12px;
+            cursor: pointer;
+            position: absolute;
+            box-sizing: border-box;
+        }
+        .black-key {
+            width: 20px;
+            height: 60px;
+            background-color: black;
+            color: white;
+            position: absolute;
+            z-index: 1;
+            line-height: 60px;
+            font-size: 10px;
+            top: 25px;
+            left: -10px; /* 左移5px */
+        }
+        .selected {
+            background-color: #4caf50 !important;
+        }
+        .canceled {
+            background-color: #f44336 !important;
+        }
+        .generated-notes, .saved-groups {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 8px;
+        }
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            select, input[type="number"] {
+                width: 100%;
+            }
+            #piano {
+                max-width: 100%;
+                overflow-x: scroll;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.1.0/vexflow-min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>单音生成器</h2>
+        
+        <div class="section">
+            <h3>管理音符</h3>
+            <div id="piano">点击键盘添加/删除音符</div>
+            <div id="score" class="generated-notes">
+                五线谱显示选中音符
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>生成设置</h3>
+            <div class="controls">
+                <label for="difficulty">难度档位:</label>
+                <select id="difficulty">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5" selected>5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+                <label for="noteCount">生成音符数量:</label>
+                <input type="number" id="noteCount" min="1" max="20" value="10">
+            </div>
+        </div>
+
+        <div class="section controls">
+            <button onclick="generateNotes()">生成单音</button>
+            <button onclick="saveGenerated()">保存</button>
+            <button onclick="deleteSelectedGroup()">删除选中组</button>
+        </div>
+
+        <div class="section generated-notes" id="generatedScore">
+            点击“生成单音”以显示随机音符五线谱
+            <canvas id="generatedCanvas"></canvas>
+        </div>
+
+        <div class="section saved-groups" id="savedGroups">
+            <h3>保存的组</h3>
+        </div>
+    </div>
+
+    <script>
+        const vf = Vex.Flow;
+        const noteToJianpu = {
+            'g3': '5', 'g#3': '5#3', 'a3': '6', 'bb3': '7b3', 'b3': '7',
+            'c4': '1.', 'c#4': '1#', 'd4': '2.', 'eb4': '3b', 'e4': '3.', 'f4': '4.', 'f#4': '4#',
+            'g4': '5.', 'g#4': '5#4', 'a4': '6.', 'bb4': '7b4', 'b4': '7.',
+            'c5': '1..', 'c#5': '1#.', 'd5': '2..', 'eb5': '3b.', 'e5': '3..', 'f5': '4..', 'f#5': '4#.', 'g5': '5..'
+        };
+        const jianpuToVex = {
+            '5': 'g/3', '5#3': 'g#/3', '6': 'a/3', '7b3': 'bb/3', '7': 'b/3',
+            '1.': 'c/4', '1#': 'c#/4', '2.': 'd/4', '3b': 'eb/4', '3.': 'e/4', '4.': 'f/4', '4#': 'f#/4',
+            '5.': 'g/4', '5#4': 'g#/4', '6.': 'a/4', '7b4': 'bb/4', '7.': 'b/4',
+            '1..': 'c/5', '1#.': 'c#/5', '2..': 'd/5', '3b.': 'eb/5', '3..': 'e/5', '4..': 'f/5', '4#.': 'f#/5', '5..': 'g/5'
+        };
+        const jianpuToNote = {};
+        for (let note in noteToJianpu) jianpuToNote[noteToJianpu[note]] = note;
+        let selectedNotes = [];
+        let lastGenerated = [];
+        let savedGroups = [];
+
+        function getAlterationCount(difficulty, noteCount) {
+            difficulty = parseInt(difficulty);
+            if (difficulty <= 4) return Math.max(1, Math.floor((difficulty - 1) / 10 * noteCount));
+            if (difficulty <= 6) return Math.floor(0.3 * noteCount); // 30% of total notes
+            return Math.min(Math.floor((difficulty - 3) / 10 * noteCount), noteCount);
+        }
+
+        function renderScore(containerId, generated = []) {
+            const div = document.getElementById(containerId);
+            div.innerHTML = '<canvas id="canvas-' + containerId + '"></canvas>';
+            const canvas = document.getElementById('canvas-' + containerId);
+            const renderer = new vf.Renderer(canvas, vf.Renderer.Backends.CANVAS);
+            const context = renderer.getContext();
+            renderer.resize(500, 150);
+
+            const stave = new vf.Stave(10, 0, 480);
+            stave.addClef('treble').setContext(context).draw();
+
+            const notesToRender = generated.length ? generated : selectedNotes;
+            const vexflowNotes = notesToRender.map(note => {
+                const jianpu = noteToJianpu[note];
+                if (!jianpu) {
+                    console.error(`Missing jianpu for note: ${note}`);
+                    return new vf.StaveNote({ keys: ['c/4'], duration: 'w' });
+                }
+                const key = jianpuToVex[jianpu] || 'c/4';
+                const staveNote = new vf.StaveNote({
+                    keys: [key],
+                    duration: 'w'
+                });
+                if (jianpu.includes('#')) {
+                    staveNote.addAccidental(0, new vf.Accidental('#'));
+                } else if (jianpu.includes('b')) {
+                    staveNote.addAccidental(0, new vf.Accidental('b'));
+                }
+                return staveNote;
+            });
+
+            if (vexflowNotes.length > 0) {
+                const voice = new vf.Voice({ num_beats: notesToRender.length * 4, beat_value: 4 });
+                voice.addTickables(vexflowNotes);
+                const formatter = new vf.Formatter().joinVoices([voice]).format([voice], 400);
+                voice.draw(context, stave);
+            }
+        }
+
+        function generateNotes() {
+            if (selectedNotes.length === 0) {
+                alert('请先选中音符！');
+                return;
+            }
+            const difficulty = document.getElementById('difficulty').value;
+            const noteCountInput = document.getElementById('noteCount');
+            let noteCount = parseInt(noteCountInput.value);
+            if (isNaN(noteCount) || noteCount < 1) {
+                alert('请输入有效的音符数量（至少1个）！');
+                return;
+            }
+            if (noteCount > 20) {
+                alert('最大支持20个音符！');
+                noteCount = 20;
+                noteCountInput.value = 20;
+            }
+
+            const selectedNatural = selectedNotes.filter(n => !n.includes('#') && !n.includes('b'));
+            const selectedAlteration = selectedNotes.filter(n => n.includes('#') || n.includes('b'));
+
+            let numAlter = Math.min(getAlterationCount(difficulty, noteCount), noteCount, selectedAlteration.length);
+            let numNatural = noteCount - numAlter;
+
+            const generated = [];
+            let usedNotes = new Set();
+            for (let i = 0; i < numAlter; i++) {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * selectedAlteration.length);
+                } while ((selectedNotes.length >= noteCount && usedNotes.has(selectedAlteration[idx])) || (selectedAlteration.length > 1 && selectedAlteration[idx] === (generated[i-1] || null)));
+                generated.push(selectedAlteration[idx]);
+                if (selectedNotes.length >= noteCount) usedNotes.add(selectedAlteration[idx]);
+            }
+            for (let i = 0; i < numNatural; i++) {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * selectedNatural.length);
+                } while ((selectedNotes.length >= noteCount && usedNotes.has(selectedNatural[idx])) || (selectedNatural.length > 1 && selectedNatural[idx] === (generated[i+numAlter-1] || null)));
+                generated.push(selectedNatural[idx]);
+                if (selectedNotes.length >= noteCount) usedNotes.add(selectedNatural[idx]);
+            }
+            generated.sort(() => 0.5 - Math.random());
+
+            lastGenerated = generated;
+            renderScore('generatedScore', generated);
+        }
+
+        function saveGenerated() {
+            if (lastGenerated.length === 0) {
+                alert('请先生成音符！');
+                return;
+            }
+            savedGroups.push([...lastGenerated]);
+            renderSavedGroups();
+        }
+
+        function renderSavedGroups() {
+            const savedGroupsDiv = document.getElementById('savedGroups');
+            savedGroupsDiv.innerHTML = '<h3>保存的组</h3>';
+            savedGroups.forEach((group, index) => {
+                const div = document.createElement('div');
+                div.className = 'saved-group';
+                div.id = `saved-${index}`;
+                div.innerHTML = '<canvas id="saved-canvas-' + index + '"></canvas>';
+                div.addEventListener('click', () => selectGroup(index));
+                if (selectedGroup === index) div.classList.add('selected');
+                savedGroupsDiv.appendChild(div);
+                renderScore(`saved-${index}`, group);
+            });
+        }
+
+        let selectedGroup = null;
+        function selectGroup(index) {
+            if (selectedGroup === index) {
+                selectedGroup = null;
+            } else {
+                selectedGroup = index;
+            }
+            renderSavedGroups();
+        }
+
+        function deleteSelectedGroup() {
+            if (selectedGroup !== null) {
+                savedGroups.splice(selectedGroup, 1);
+                selectedGroup = null;
+                renderSavedGroups();
+            } else {
+                alert('请先选中一个组！');
+            }
+        }
+
+        function initPiano() {
+            const piano = document.getElementById('piano');
+            const keys = [
+                { note: 'g3', type: 'white', pos: 0 },
+                { note: 'g#3', type: 'black', pos: 1 },
+                { note: 'a3', type: 'white', pos: 1 },
+                { note: 'bb3', type: 'black', pos: 2 },
+                { note: 'b3', type: 'white', pos: 2 },
+                { note: 'c4', type: 'white', pos: 3 },
+                { note: 'c#4', type: 'black', pos: 4 },
+                { note: 'd4', type: 'white', pos: 4 },
+                { note: 'eb4', type: 'black', pos: 5 },
+                { note: 'e4', type: 'white', pos: 5 },
+                { note: 'f4', type: 'white', pos: 6 },
+                { note: 'f#4', type: 'black', pos: 7 },
+                { note: 'g4', type: 'white', pos: 7 },
+                { note: 'g#4', type: 'black', pos: 8 },
+                { note: 'a4', type: 'white', pos: 8 },
+                { note: 'bb4', type: 'black', pos: 9 },
+                { note: 'b4', type: 'white', pos: 9 },
+                { note: 'c5', type: 'white', pos: 10 },
+                { note: 'c#5', type: 'black', pos: 11 },
+                { note: 'd5', type: 'white', pos: 11 },
+                { note: 'eb5', type: 'black', pos: 12 },
+                { note: 'e5', type: 'white', pos: 12 },
+                { note: 'f5', type: 'white', pos: 13 },
+                { note: 'f#5', type: 'black', pos: 14 },
+                { note: 'g5', type: 'white', pos: 14 }
+            ];
+
+            keys.forEach(keyInfo => {
+                const div = document.createElement('div');
+                div.textContent = keyInfo.note.replace(/3|4|5/g, '').toLowerCase();
+                if (keyInfo.type === 'white') {
+                    div.className = 'key';
+                    div.style.left = `${keyInfo.pos * 30}px`;
+                    div.style.lineHeight = '70px';
+                } else {
+                    div.className = 'black-key';
+                    div.style.left = `${keyInfo.pos * 30 - 10}px`; /* 左移5px */
+                }
+                div.dataset.note = keyInfo.note;
+                div.addEventListener('click', toggleNote);
+                piano.appendChild(div);
+            });
+        }
+
+        function toggleNote(e) {
+            const key = e.target;
+            const note = key.dataset.note;
+            if (selectedNotes.includes(note)) {
+                selectedNotes = selectedNotes.filter(n => n !== note);
+                key.classList.add('canceled');
+                setTimeout(() => key.classList.remove('canceled', 'selected'), 500);
+            } else {
+                selectedNotes.push(note);
+                key.classList.add('selected');
+            }
+            renderScore('score');
+        }
+
+        window.onload = () => {
+            console.log('页面加载，初始化');
+            initPiano();
+            renderScore('score');
+        };
+    </script>
+</body>
+</html>
