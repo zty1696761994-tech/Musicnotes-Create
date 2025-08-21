@@ -92,8 +92,8 @@
             z-index: 1;
             line-height: 60px;
             font-size: 10px;
-            top: 25px;
-            left: -10px; /* 左移5px */
+            top: 24px;
+            left: -10px;
         }
         .selected {
             background-color: #4caf50 !important;
@@ -204,10 +204,22 @@
         let lastGenerated = [];
         let savedGroups = [];
 
+        // 存储每个音高（音名+八度）的最近变音状态
+        let accidentalState = {};
+
+        function getBaseNote(note) {
+            const match = note.match(/([a-g][#b]?)([0-9])/); // 提取音名和八度，如 eb4 → e4
+            return match ? match[1] + match[2] : note; // 返回完整音高基础部分（如 e4）
+        }
+
+        function resetAccidentalState() {
+            accidentalState = {};
+        }
+
         function getAlterationCount(difficulty, noteCount) {
             difficulty = parseInt(difficulty);
             if (difficulty <= 4) return Math.max(1, Math.floor((difficulty - 1) / 10 * noteCount));
-            if (difficulty <= 6) return Math.floor(0.3 * noteCount); // 30% of total notes
+            if (difficulty <= 6) return Math.floor(0.3 * noteCount);
             return Math.min(Math.floor((difficulty - 3) / 10 * noteCount), noteCount);
         }
 
@@ -223,23 +235,44 @@
             stave.addClef('treble').setContext(context).draw();
 
             const notesToRender = generated.length ? generated : selectedNotes;
-            const vexflowNotes = notesToRender.map(note => {
+            const vexflowNotes = [];
+            resetAccidentalState(); // 重置变音状态
+
+            notesToRender.forEach((note, index) => {
                 const jianpu = noteToJianpu[note];
                 if (!jianpu) {
                     console.error(`Missing jianpu for note: ${note}`);
-                    return new vf.StaveNote({ keys: ['c/4'], duration: 'w' });
+                    vexflowNotes.push(new vf.StaveNote({ keys: ['c/4'], duration: 'w' }));
+                    return;
                 }
                 const key = jianpuToVex[jianpu] || 'c/4';
                 const staveNote = new vf.StaveNote({
                     keys: [key],
                     duration: 'w'
                 });
+
+                // 获取音高（音名+八度）
+                const baseNote = getBaseNote(note).replace(/[#b]/, ''); // 提取音名+八度基础（如 eb4 → e4）
+                const fullNote = note; // 完整音高（如 eb4）
+                const hasAccidental = jianpu.includes('#') || jianpu.includes('b');
+
+                // 更新或检查变音状态
+                if (hasAccidental) {
+                    accidentalState[baseNote] = jianpu.includes('#') ? '#' : 'b';
+                } else if (accidentalState[baseNote] && !hasAccidental) {
+                    // 如果前有变音且当前为自然音，添加还原号
+                    staveNote.addAccidental(0, new vf.Accidental('n'));
+                    delete accidentalState[baseNote]; // 使用后清除状态
+                }
+
+                // 添加原有变音记号
                 if (jianpu.includes('#')) {
                     staveNote.addAccidental(0, new vf.Accidental('#'));
                 } else if (jianpu.includes('b')) {
                     staveNote.addAccidental(0, new vf.Accidental('b'));
                 }
-                return staveNote;
+
+                vexflowNotes.push(staveNote);
             });
 
             if (vexflowNotes.length > 0) {
@@ -381,7 +414,7 @@
                     div.style.lineHeight = '70px';
                 } else {
                     div.className = 'black-key';
-                    div.style.left = `${keyInfo.pos * 30 - 10}px`; /* 左移5px */
+                    div.style.left = `${keyInfo.pos * 30 - 10}px`;
                 }
                 div.dataset.note = keyInfo.note;
                 div.addEventListener('click', toggleNote);
