@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>单音生成器</title>
+    <title>单音音组生成器</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -136,7 +136,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>单音生成器</h2>
+        <h2>单音音组生成器</h2>
         
         <div class="section">
             <h3>管理音符</h3>
@@ -166,17 +166,19 @@
                 <label for="noteCount">生成音符数量:</label>
                 <input type="number" id="noteCount" min="1" max="20" value="10">
             </div>
-        </div>
-
-        <div class="section controls">
-            <button onclick="generateNotes()">生成单音</button>
-            <button onclick="saveGenerated()">保存</button>
-            <button onclick="deleteSelectedGroup()">删除选中组</button>
+            <div class="controls">
+                <button onclick="generateNotes()">生成</button>
+            </div>
         </div>
 
         <div class="section generated-notes" id="generatedScore">
-            点击“生成单音”以显示随机音符五线谱
+            点击“生成”以显示随机音符五线谱
             <canvas id="generatedCanvas"></canvas>
+        </div>
+
+        <div class="section controls">
+            <button onclick="saveGenerated()">保存组</button>
+            <button onclick="deleteSelectedGroup()">删除选中组</button>
         </div>
 
         <div class="section saved-groups" id="savedGroups">
@@ -208,8 +210,8 @@
         let accidentalState = {};
 
         function getBaseNote(note) {
-            const match = note.match(/([a-g][#b]?)([0-9])/); // 提取音名和八度，如 eb4 → e4
-            return match ? match[1] + match[2] : note; // 返回完整音高基础部分（如 e4）
+            const match = note.match(/([a-g][#b]?)([0-9])/); // 提取音名和八度，如 bb3 → b3
+            return match ? match[1] + match[2] : note; // 返回完整音高基础部分（如 b3）
         }
 
         function resetAccidentalState() {
@@ -252,8 +254,8 @@
                 });
 
                 // 获取音高（音名+八度）
-                const baseNote = getBaseNote(note).replace(/[#b]/, ''); // 提取音名+八度基础（如 eb4 → e4）
-                const fullNote = note; // 完整音高（如 eb4）
+                const baseNote = getBaseNote(note).replace(/[#b]/, ''); // 提取音名+八度基础（如 bb3 → b3）
+                const fullNote = note; // 完整音高（如 bb3）
                 const hasAccidental = jianpu.includes('#') || jianpu.includes('b');
 
                 // 更新或检查变音状态
