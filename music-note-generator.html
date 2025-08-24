@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>单音音组生成器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2d3748;
+            -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
+            min-height: 100vh;
+        }
+
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: -1;
+            background-image: 
+                radial-gradient(circle at 25% 25%, white 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, white 2px, transparent 2px);
+            background-size: 50px 50px;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #1a202c;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+            margin-bottom: 0;
+        }
+        
+        h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+        }
+
+        h3::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        select, input[type="number"] {
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background-color: white;
+            width: 140px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select:hover, input[type="number"]:hover {
+            border-color: #cbd5e0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            margin: 5px 0;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: inherit;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+
+        .delete-btn:hover {
+            box-shadow: 0 10px 20px rgba(245, 101, 101, 0.3);
+        }
+        
+        #piano {
+            margin: 20px 0;
+            position: relative;
+            height: 140px;
+            width: 100%;
+            max-width: 800px;
+            overflow-x: auto;
+            background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+        
+        .key {
+            width: 35px;
+            height: 100px;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+            border: 2px solid #e2e8f0;
+            text-align: center;
+            line-height: 70px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            position: absolute;
+            border-radius: 0 0 8px 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .key:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
+        }
+        
+        .black-key {
+            width: 25px;
+            height: 65px;
+            background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+            color: white;
+            position: absolute;
+            z-index: 2;
+            line-height: 65px;
+            font-size: 10px;
+            font-weight: 500;
+            top: 20px;
+            left: -12px;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .black-key:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+        }
+        
+        .selected {
+            background: linear-gradient(180deg, #48bb78 0%, #38a169 100%) !important;
+            color: white !important;
+            border-color: #38a169 !important;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(72, 187, 120, 0.4) !important;
+        }
+        
+        .canceled {
+            background: linear-gradient(180deg, #f56565 0%, #e53e3e 100%) !important;
+            color: white !important;
+            border-color: #e53e3e !important;
+            transform: scale(0.95);
+        }
+        
+        .score-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+
+        .score-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 10px;
+        }
+
+        .saved-group {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .saved-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-color: #e2e8f0;
+        }
+
+        .saved-group.selected {
+            border-color: #667eea;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                width: 100%;
+            }
+            
+            select, input[type="number"] {
+                width: 100%;
+            }
+            
+            #piano {
+                max-width: 100%;
+                overflow-x: scroll;
+            }
+            
+            button {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            h2 {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                padding: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+        }
+
+        /* 添加一些微妙的动画效果 */
+        .section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6b46a3);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.1.0/vexflow-min.js"></script>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h2>🎵 单音音组生成器</h2>
+            <p class="subtitle">智能音乐练习工具 · 让练琴更有趣</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="selectedCount">0</div>
+                <div class="stat-label">已选音符</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="generatedCount">0</div>
+                <div class="stat-label">生成音符</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="savedCount">0</div>
+                <div class="stat-label">保存组数</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🎹 音符选择</h3>
+            <p style="color: #718096; margin-bottom: 20px;">点击键盘选择要练习的音符，再次点击可取消选择</p>
+            <div id="piano"></div>
+            <div class="score-container" id="score">
+                <div class="score-title">当前选中的音符</div>
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>⚙️ 生成设置</h3>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="difficulty">难度档位</label>
+                    <select id="difficulty">
+                        <option value="1">1 - 初级</option>
+                        <option value="2">2 - 入门</option>
+                        <option value="3">3 - 基础</option>
+                        <option value="4">4 - 进阶</option>
+                        <option value="5" selected>5 - 标准</option>
+                        <option value="6">6 - 提高</option>
+                        <option value="7">7 - 熟练</option>
+                        <option value="8">8 - 精通</option>
+                        <option value="9">9 - 专家</option>
+                        <option value="10">10 - 大师</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="noteCount">音符数量</label>
+                    <input type="number" id="noteCount" min="1" max="20" value="10">
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="generateNotes()">✨ 生成练习</button>
+            </div>
+        </div>
+
+        <div class="section score-container" id="generatedScore">
+            <div class="score-title">点击"生成练习"来创建随机音符组合</div>
+            <canvas id="generatedCanvas"></canvas>
+        </div>
+
+        <div class="section">
+            <h3>💾 操作面板</h3>
+            <div class="button-group">
+                <button onclick="saveGenerated()">💾 保存当前组合</button>
+                <button class="delete-btn" onclick="deleteSelectedGroup()">🗑️ 删除选中组合</button>
+            </div>
+        </div>
+
+        <div class="section" id="savedGroups">
+            <h3>📚 保存的练习组合</h3>
+            <p style="color: #718096; margin-bottom: 20px;">点击选中组合，然后可以删除不需要的练习</p>
+        </div>
+    </div>
+
+    <script>
+        const vf = Vex.Flow;
+        const noteToJianpu = {
+            'g3': '5', 'g#3': '5#3', 'a3': '6', 'bb3': '7b3', 'b3': '7',
+            'c4': '1.', 'c#4': '1#', 'd4': '2.', 'eb4': '3b', 'e4': '3.', 'f4': '4.', 'f#4': '4#',
+            'g4': '5.', 'g#4': '5#4', 'a4': '6.', 'bb4': '7b4', 'b4': '7.',
+            'c5': '1..', 'c#5': '1#.', 'd5': '2..', 'eb5': '3b.', 'e5': '3..', 'f5': '4..', 'f#5': '4#.', 'g5': '5..'
+        };
+        const jianpuToVex = {
+            '5': 'g/3', '5#3': 'g#/3', '6': 'a/3', '7b3': 'bb/3', '7': 'b/3',
+            '1.': 'c/4', '1#': 'c#/4', '2.': 'd/4', '3b': 'eb/4', '3.': 'e/4', '4.': 'f/4', '4#': 'f#/4',
+            '5.': 'g/4', '5#4': 'g#/4', '6.': 'a/4', '7b4': 'bb/4', '7.': 'b/4',
+            '1..': 'c/5', '1#.': 'c#/5', '2..': 'd/5', '3b.': 'eb/5', '3..': 'e/5', '4..': 'f/5', '4#.': 'f#/5', '5..': 'g/5'
+        };
+        const jianpuToNote = {};
+        for (let note in noteToJianpu) jianpuToNote[noteToJianpu[note]] = note;
+        let selectedNotes = [];
+        let lastGenerated = [];
+        let savedGroups = [];
+        let accidentalState = {};
+
+        function updateStats() {
+            document.getElementById('selectedCount').textContent = selectedNotes.length;
+            document.getElementById('generatedCount').textContent = lastGenerated.length;
+            document.getElementById('savedCount').textContent = savedGroups.length;
+        }
+
+        function getBaseNote(note) {
+            const match = note.match(/([a-g]([#b]?[b#])?)([0-9])/);
+            return match ? match[1] + match[3] : note;
+        }
+
+        function getBaseLetter(note) {
+            const match = note.match(/([a-g])([#b]?[b#])?([0-9])/);
+            return match ? match[1] : note.charAt(0);
+        }
+
+        function resetAccidentalState() {
+            accidentalState = {};
+        }
+
+        function getAlterationCount(difficulty, noteCount) {
+            difficulty = parseInt(difficulty);
+            if (difficulty <= 4) return Math.max(1, Math.floor((difficulty - 1) / 10 * noteCount));
+            if (difficulty <= 6) return Math.floor(0.3 * noteCount);
+            return Math.min(Math.floor((difficulty - 3) / 10 * noteCount), noteCount);
+        }
+
+        function renderScore(containerId, generated = []) {
+            const div = document.getElementById(containerId);
+            const canvas = div.querySelector('canvas');
+            if (!canvas) return;
+            
+            canvas.width = 0;
+            canvas.height = 0;
+            
+            const renderer = new vf.Renderer(canvas, vf.Renderer.Backends.CANVAS);
+            const context = renderer.getContext();
+            renderer.resize(600, 200);
+
+            const stave = new vf.Stave(10, 40, 580);
+            stave.addClef('treble').setContext(context).draw();
+
+            const notesToRender = generated.length ? generated : selectedNotes;
+            if (notesToRender.length === 0) {
+                context.fillStyle = '#718096';
+                context.font = '16px Inter';
+                context.textAlign = 'center';
+                context.fillText('暂无音符', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const vexflowNotes = [];
+            resetAccidentalState();
+
+            notesToRender.forEach((note, index) => {
+                const jianpu = noteToJianpu[note];
+                if (!jianpu) {
+                    console.error(`Missing jianpu for note: ${note}`);
+                    vexflowNotes.push(new vf.StaveNote({ keys: ['c/4'], duration: 'w' }));
+                    return;
+                }
+                const key = jianpuToVex[jianpu] || 'c/4';
+                const staveNote = new vf.StaveNote({
+                    keys: [key],
+                    duration: 'w'
+                });
+
+                const baseNote = getBaseNote(note).replace(/[#b]/g, '');
+                const baseLetter = getBaseLetter(note);
+                const fullNote = note;
+                const hasAccidental = jianpu.includes('#') || jianpu.includes('b');
+
+                if (hasAccidental) {
+                    accidentalState[baseNote] = jianpu.includes('#') ? '#' : 'b';
+                } else if (accidentalState[baseNote] && !hasAccidental) {
+                    staveNote.addAccidental(0, new vf.Accidental('n'));
+                    delete accidentalState[baseNote];
+                }
+
+                if (jianpu.includes('#')) {
+                    staveNote.addAccidental(0, new vf.Accidental('#'));
+                } else if (jianpu.includes('b')) {
+                    staveNote.addAccidental(0, new vf.Accidental('b'));
+                }
+
+                vexflowNotes.push(staveNote);
+            });
+
+            if (vexflowNotes.length > 0) {
+                const voice = new vf.Voice({ num_beats: notesToRender.length * 4, beat_value: 4 });
+                voice.addTickables(vexflowNotes);
+                const formatter = new vf.Formatter().joinVoices([voice]).format([voice], 500);
+                voice.draw(context, stave);
+            }
+        }
+
+        function generateNotes() {
+            if (selectedNotes.length === 0) {
+                alert('🎼 请先在键盘上选择要练习的音符！');
+                return;
+            }
+            const difficulty = document.getElementById('difficulty').value;
+            const noteCountInput = document.getElementById('noteCount');
+            let noteCount = parseInt(noteCountInput.value);
+            if (isNaN(noteCount) || noteCount < 1) {
+                alert('⚠️ 请输入有效的音符数量（至少1个）！');
+                return;
+            }
+            if (noteCount > 20) {
+                alert('⚠️ 最大支持20个音符！');
+                noteCount = 20;
+                noteCountInput.value = 20;
+            }
+
+            const selectedNatural = selectedNotes.filter(n => !n.includes('#') && !n.includes('b'));
+            const selectedAlteration = selectedNotes.filter(n => n.includes('#') || n.includes('b'));
+
+            let numAlter = Math.min(getAlterationCount(difficulty, noteCount), noteCount, selectedAlteration.length);
+            let numNatural = noteCount - numAlter;
+
+            const generated = [];
+            let usedNotes = new Set();
+            for (let i = 0; i < numAlter; i++) {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * selectedAlteration.length);
+                } while ((selectedNotes.length >= noteCount && usedNotes.has(selectedAlteration[idx])) || (selectedAlteration.length > 1 && selectedAlteration[idx] === (generated[i-1] || null)));
+                generated.push(selectedAlteration[idx]);
+                if (selectedNotes.length >= noteCount) usedNotes.add(selectedAlteration[idx]);
+            }
+            for (let i = 0; i < numNatural; i++) {
+                let idx;
+                do {
+                    idx = Math.floor(Math.random() * selectedNatural.length);
+                } while ((selectedNotes.length >= noteCount && usedNotes.has(selectedNatural[idx])) || (selectedNatural.length > 1 && selectedNatural[idx] === (generated[i+numAlter-1] || null)));
+                generated.push(selectedNatural[idx]);
+                if (selectedNotes.length >= noteCount) usedNotes.add(selectedNatural[idx]);
+            }
+            generated.sort(() => 0.5 - Math.random());
+
+            lastGenerated = generated;
+            document.querySelector('#generatedScore .score-title').textContent = `✨ 生成的练习组合（难度: ${difficulty}）`;
+            renderScore('generatedScore', generated);
+            updateStats();
+        }
+
+        function saveGenerated() {
+            if (lastGenerated.length === 0) {
+                alert('💡 请先生成音符组合！');
+                return;
+            }
+            savedGroups.push([...lastGenerated]);
+            renderSavedGroups();
+            updateStats();
+        }
+
+        function renderSavedGroups() {
+            const savedGroupsDiv = document.getElementById('savedGroups');
+            savedGroupsDiv.innerHTML = '<h3>📚 保存的练习组合</h3><p style="color: #718096; margin-bottom: 20px;">点击选中组合，然后可以删除不需要的练习</p>';
+            
+            if (savedGroups.length === 0) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.style.textAlign = 'center';
+                emptyDiv.style.color = '#a0aec0';
+                emptyDiv.style.padding = '40px 20px';
+                emptyDiv.innerHTML = '🎵 暂无保存的组合<br><small>生成练习后点击"保存当前组合"</small>';
+                savedGroupsDiv.appendChild(emptyDiv);
+                return;
+            }
+            
+            savedGroups.forEach((group, index) => {
+                const div = document.createElement('div');
+                div.className = 'saved-group';
+                div.id = `saved-${index}`;
+                div.innerHTML = `
+                    <div style="font-weight: 500; margin-bottom: 10px; color: #4a5568;">
+                        第 ${index + 1} 组 (${group.length} 个音符)
+                    </div>
+                    <canvas id="saved-canvas-${index}"></canvas>
+                `;
+                div.addEventListener('click', () => selectGroup(index));
+                if (selectedGroup === index) div.classList.add('selected');
+                savedGroupsDiv.appendChild(div);
+                renderScore(`saved-${index}`, group);
+            });
+        }
+
+        let selectedGroup = null;
+        function selectGroup(index) {
+            if (selectedGroup === index) {
+                selectedGroup = null;
+            } else {
+                selectedGroup = index;
+            }
+            renderSavedGroups();
+        }
+
+        function deleteSelectedGroup() {
+            if (selectedGroup !== null) {
+                savedGroups.splice(selectedGroup, 1);
+                selectedGroup = null;
+                renderSavedGroups();
+                updateStats();
+            } else {
+                alert('💡 请先选中一个组合！');
+            }
+        }
+
+        function initPiano() {
+            const piano = document.getElementById('piano');
+            const keys = [
+                { note: 'g3', type: 'white', pos: 0 },
+                { note: 'g#3', type: 'black', pos: 1 },
+                { note: 'a3', type: 'white', pos: 1 },
+                { note: 'bb3', type: 'black', pos: 2 },
+                { note: 'b3', type: 'white', pos: 2 },
+                { note: 'c4', type: 'white', pos: 3 },
+                { note: 'c#4', type: 'black', pos: 4 },
+                { note: 'd4', type: 'white', pos: 4 },
+                { note: 'eb4', type: 'black', pos: 5 },
+                { note: 'e4', type: 'white', pos: 5 },
+                { note: 'f4', type: 'white', pos: 6 },
+                { note: 'f#4', type: 'black', pos: 7 },
+                { note: 'g4', type: 'white', pos: 7 },
+                { note: 'g#4', type: 'black', pos: 8 },
+                { note: 'a4', type: 'white', pos: 8 },
+                { note: 'bb4', type: 'black', pos: 9 },
+                { note: 'b4', type: 'white', pos: 9 },
+                { note: 'c5', type: 'white', pos: 10 },
+                { note: 'c#5', type: 'black', pos: 11 },
+                { note: 'd5', type: 'white', pos: 11 },
+                { note: 'eb5', type: 'black', pos: 12 },
+                { note: 'e5', type: 'white', pos: 12 },
+                { note: 'f5', type: 'white', pos: 13 },
+                { note: 'f#5', type: 'black', pos: 14 },
+                { note: 'g5', type: 'white', pos: 14 }
+            ];
+
+            keys.forEach(keyInfo => {
+                const div = document.createElement('div');
+                div.textContent = keyInfo.note.replace(/3|4|5/g, '').toLowerCase();
+                if (keyInfo.type === 'white') {
+                    div.className = 'key';
+                    div.style.left = `${keyInfo.pos * 35}px`;
+                    div.style.lineHeight = '70px';
+                } else {
+                    div.className = 'black-key';
+                    div.style.left = `${keyInfo.pos * 35 - 12}px`;
+                }
+                div.dataset.note = keyInfo.note;
+                div.addEventListener('click', toggleNote);
+                piano.appendChild(div);
+            });
+        }
+
+        function toggleNote(e) {
+            const key = e.target;
+            const note = key.dataset.note;
+            if (selectedNotes.includes(note)) {
+                selectedNotes = selectedNotes.filter(n => n !== note);
+                key.classList.add('canceled');
+                setTimeout(() => key.classList.remove('canceled', 'selected'), 500);
+            } else {
+                selectedNotes.push(note);
+                key.classList.add('selected');
+            }
+            renderScore('score');
+            updateStats();
+        }
+
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                generateNotes();
+            } else if (e.key === 's' && e.ctrlKey) {
+                e.preventDefault();
+                saveGenerated();
+            } else if (e.key === 'Delete') {
+                e.preventDefault();
+                deleteSelectedGroup();
+            }
+        });
+
+        // 添加提示工具提示
+        function addTooltips() {
+            const tooltips = {
+                'difficulty': '选择练习难度，影响变音记号出现频率',
+                'noteCount': '设置每次生成的音符数量',
+                'piano': '点击键盘选择要练习的音符'
+            };
+
+            Object.keys(tooltips).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.title = tooltips[id];
+                }
+            });
+        }
+
+        window.onload = () => {
+            console.log('🎵 单音音组生成器加载完成');
+            initPiano();
+            renderScore('score');
+            renderSavedGroups();
+            updateStats();
+            addTooltips();
+            
+            // 添加欢迎提示
+            setTimeout(() => {
+                if (selectedNotes.length === 0) {
+                    const welcomeMsg = '🎹 欢迎使用单音音组生成器！\n\n请先点击键盘选择要练习的音符，然后点击"生成练习"开始吧！\n\n💡 小贴士：\n- 空格键快速生成\n- Ctrl+S 快速保存\n- Delete 删除选中组合';
+                    console.log(welcomeMsg);
+                }
+            }, 2000);
+        };
+    </script>
+</body>
+</html>
+                
