@@ -6,16 +6,18 @@
     <title>单音音组生成器</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+
         * {
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #2d3748;
+
             -webkit-text-size-adjust: 100%;
             touch-action: manipulation;
             min-height: 100vh;
@@ -29,7 +31,7 @@
             height: 100%;
             opacity: 0.1;
             z-index: -1;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 25% 25%, white 2px, transparent 2px),
                 radial-gradient(circle at 75% 75%, white 2px, transparent 2px);
             background-size: 50px 50px;
@@ -40,7 +42,7 @@
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(180deg); }
         }
-        
+
         .container {
             max-width: 1000px;
             margin: 20px auto;
@@ -56,14 +58,16 @@
             text-align: center;
             margin-bottom: 40px;
         }
-        
+
         h2 {
             color: #1a202c;
             margin-bottom: 10px;
             font-weight: 700;
             font-size: 2.2em;
             background: linear-gradient(135deg, #667eea, #764ba2);
+
             -webkit-background-clip: text;
+
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
@@ -73,7 +77,7 @@
             font-size: 1.1em;
             margin-bottom: 0;
         }
-        
+
         h3 {
             color: #2d3748;
             margin-bottom: 20px;
@@ -91,7 +95,7 @@
             margin-right: 12px;
             border-radius: 2px;
         }
-        
+
         .section {
             margin-bottom: 35px;
             padding: 25px;
@@ -105,7 +109,7 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
-        
+
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -113,13 +117,13 @@
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .control-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         label {
             font-size: 14px;
             font-weight: 500;
@@ -127,7 +131,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         select, input[type="number"] {
             padding: 12px 16px;
             font-size: 16px;
@@ -148,7 +152,7 @@
         select:hover, input[type="number"]:hover {
             border-color: #cbd5e0;
         }
-        
+
         button {
             padding: 12px 24px;
             margin: 5px 0;
@@ -202,7 +206,7 @@
         .delete-btn:hover {
             box-shadow: 0 10px 20px rgba(245, 101, 101, 0.3);
         }
-        
+
         #piano {
             margin: 20px 0;
             position: relative;
@@ -215,7 +219,7 @@
             padding: 20px;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
         }
-        
+
         .key {
             width: 35px;
             height: 100px;
@@ -237,7 +241,7 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             background: linear-gradient(180deg, #f0f4f8 0%, #e2e8f0 100%);
         }
-        
+
         .black-key {
             width: 25px;
             height: 65px;
@@ -260,7 +264,7 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
             background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
         }
-        
+
         .selected {
             background: linear-gradient(180deg, #48bb78 0%, #38a169 100%) !important;
             color: white !important;
@@ -268,14 +272,14 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 16px rgba(72, 187, 120, 0.4) !important;
         }
-        
+
         .canceled {
             background: linear-gradient(180deg, #f56565 0%, #e53e3e 100%) !important;
             color: white !important;
             border-color: #e53e3e !important;
             transform: scale(0.95);
         }
-        
+
         .score-container {
             background: white;
             border-radius: 15px;
@@ -292,7 +296,7 @@
             margin-bottom: 15px;
             text-align: center;
         }
-        
+
         canvas {
             width: 100% !important;
             height: auto !important;
@@ -354,7 +358,9 @@
             font-size: 2em;
             font-weight: 700;
             background: linear-gradient(135deg, #667eea, #764ba2);
+
             -webkit-background-clip: text;
+
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
@@ -364,31 +370,31 @@
             color: #718096;
             margin-top: 5px;
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
                 padding: 20px;
             }
-            
+
             .controls {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .control-group {
                 width: 100%;
             }
-            
+
             select, input[type="number"] {
                 width: 100%;
             }
-            
+
             #piano {
                 max-width: 100%;
                 overflow-x: scroll;
             }
-            
+
             button {
                 width: 100%;
             }
@@ -455,10 +461,11 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.1.0/vexflow-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> <!-- jsPDF library -->
 </head>
 <body>
     <div class="background-pattern"></div>
-    
+
     <div class="container">
         <div class="header">
             <h2>🎵 单音音组生成器</h2>
@@ -479,7 +486,7 @@
                 <div class="stat-label">保存组数</div>
             </div>
         </div>
-        
+
         <div class="section">
             <h3>🎹 音符选择</h3>
             <p style="color: #718096; margin-bottom: 20px;">点击键盘选择要练习的音符，再次点击可取消选择</p>
@@ -528,6 +535,8 @@
             <div class="button-group">
                 <button onclick="saveGenerated()">💾 保存当前组合</button>
                 <button class="delete-btn" onclick="deleteSelectedGroup()">🗑️ 删除选中组合</button>
+                <button onclick="exportMusicXML()">🎶 导出 MusicXML</button> <!-- New button for MusicXML -->
+                <button onclick="exportAllToPDF()">📄 导出所有组合为PDF</button> <!-- New button for PDF -->
             </div>
         </div>
 
@@ -557,6 +566,7 @@
         let lastGenerated = [];
         let savedGroups = [];
         let accidentalState = {};
+        let selectedGroup = null; // To keep track of the currently selected saved group
 
         function updateStats() {
             document.getElementById('selectedCount').textContent = selectedNotes.length;
@@ -585,23 +595,33 @@
             return Math.min(Math.floor((difficulty - 3) / 10 * noteCount), noteCount);
         }
 
-        function renderScore(containerId, generated = []) {
-            const div = document.getElementById(containerId);
-            const canvas = div.querySelector('canvas');
+        // Refactored renderScore to be more flexible for PDF export
+        function renderScore(containerId, notesToRender = [], targetCanvas = null) {
+            const div = containerId ? document.getElementById(containerId) : null;
+            const canvas = targetCanvas || (div ? div.querySelector('canvas') : null);
             if (!canvas) return;
-            
-            canvas.width = 0;
-            canvas.height = 0;
-            
+
+            // Clear previous rendering if not a temporary canvas
+            if (!targetCanvas) {
+                canvas.width = 0;
+                canvas.height = 0;
+            }
+
             const renderer = new vf.Renderer(canvas, vf.Renderer.Backends.CANVAS);
             const context = renderer.getContext();
-            renderer.resize(600, 200);
 
-            const stave = new vf.Stave(10, 40, 580);
+            const renderWidth = targetCanvas ? 580 : 600; // Use consistent width for PDF, slightly wider for UI
+            const renderHeight = targetCanvas ? 200 : 200;
+            renderer.resize(renderWidth, renderHeight);
+
+            // Clear canvas for fresh drawing
+            context.clearRect(0, 0, renderWidth, renderHeight);
+
+            const stave = new vf.Stave(10, 40, renderWidth - 20);
             stave.addClef('treble').setContext(context).draw();
 
-            const notesToRender = generated.length ? generated : selectedNotes;
-            if (notesToRender.length === 0) {
+            const notes = notesToRender.length ? notesToRender : selectedNotes;
+            if (notes.length === 0) {
                 context.fillStyle = '#718096';
                 context.font = '16px Inter';
                 context.textAlign = 'center';
@@ -610,9 +630,9 @@
             }
 
             const vexflowNotes = [];
-            resetAccidentalState();
+            resetAccidentalState(); // Reset for each rendering
 
-            notesToRender.forEach((note, index) => {
+            notes.forEach((note, index) => {
                 const jianpu = noteToJianpu[note];
                 if (!jianpu) {
                     console.error(`Missing jianpu for note: ${note}`);
@@ -622,34 +642,30 @@
                 const key = jianpuToVex[jianpu] || 'c/4';
                 const staveNote = new vf.StaveNote({
                     keys: [key],
-                    duration: 'w'
+                    duration: 'w' // Whole note for display
                 });
 
                 const baseNote = getBaseNote(note).replace(/[#b]/g, '');
-                const baseLetter = getBaseLetter(note);
-                const fullNote = note;
                 const hasAccidental = jianpu.includes('#') || jianpu.includes('b');
 
+                // Logic for accidentals (only draw if needed or if naturalizing)
                 if (hasAccidental) {
-                    accidentalState[baseNote] = jianpu.includes('#') ? '#' : 'b';
-                } else if (accidentalState[baseNote] && !hasAccidental) {
+                    if (accidentalState[baseNote] !== (jianpu.includes('#') ? '#' : 'b')) {
+                        staveNote.addAccidental(0, new vf.Accidental(jianpu.includes('#') ? '#' : 'b'));
+                        accidentalState[baseNote] = jianpu.includes('#') ? '#' : 'b';
+                    }
+                } else if (accidentalState[baseNote]) { // If previous note had accidental, but current doesn't, add natural
                     staveNote.addAccidental(0, new vf.Accidental('n'));
                     delete accidentalState[baseNote];
-                }
-
-                if (jianpu.includes('#')) {
-                    staveNote.addAccidental(0, new vf.Accidental('#'));
-                } else if (jianpu.includes('b')) {
-                    staveNote.addAccidental(0, new vf.Accidental('b'));
                 }
 
                 vexflowNotes.push(staveNote);
             });
 
             if (vexflowNotes.length > 0) {
-                const voice = new vf.Voice({ num_beats: notesToRender.length * 4, beat_value: 4 });
+                const voice = new vf.Voice({ num_beats: notes.length * 4, beat_value: 4 });
                 voice.addTickables(vexflowNotes);
-                const formatter = new vf.Formatter().joinVoices([voice]).format([voice], 500);
+                const formatter = new vf.Formatter().joinVoices([voice]).format([voice], renderWidth - 40);
                 voice.draw(context, stave);
             }
         }
@@ -717,7 +733,7 @@
         function renderSavedGroups() {
             const savedGroupsDiv = document.getElementById('savedGroups');
             savedGroupsDiv.innerHTML = '<h3>📚 保存的练习组合</h3><p style="color: #718096; margin-bottom: 20px;">点击选中组合，然后可以删除不需要的练习</p>';
-            
+
             if (savedGroups.length === 0) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.style.textAlign = 'center';
@@ -727,7 +743,7 @@
                 savedGroupsDiv.appendChild(emptyDiv);
                 return;
             }
-            
+
             savedGroups.forEach((group, index) => {
                 const div = document.createElement('div');
                 div.className = 'saved-group';
@@ -745,7 +761,6 @@
             });
         }
 
-        let selectedGroup = null;
         function selectGroup(index) {
             if (selectedGroup === index) {
                 selectedGroup = null;
@@ -828,7 +843,189 @@
             updateStats();
         }
 
-        // 添加键盘快捷键支持
+        // Helper to convert note string to MusicXML pitch components
+        function noteToMusicXMLPitch(note) {
+            const match = note.match(/([a-g])([#b]?)([0-9])/);
+            if (!match) return null;
+            const step = match[1].toUpperCase();
+            let alter = 0;
+            if (match[2] === '#') alter = 1;
+            if (match[2] === 'b') alter = -1;
+            const octave = parseInt(match[3]);
+            return { step, alter, octave };
+        }
+
+        // Function to export selected group as MusicXML
+        function exportMusicXML() {
+            if (selectedGroup === null || !savedGroups[selectedGroup]) {
+                alert('💡 请先选中一个组合来导出 MusicXML！');
+                return;
+            }
+
+            const groupToExport = savedGroups[selectedGroup];
+            const tempo = 80;
+            const timeSignatureBeats = 2;
+            const timeSignatureBeatType = 4;
+
+            let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <part-list>
+    <score-part id="P1">
+      <part-name>Music Practice</part-name>
+    </score-part>
+  </part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>2</divisions> <!-- 8th note = 1 division, 4th note = 2 divisions, dotted 4th = 3 divisions, half note = 4 divisions -->
+        <key>
+          <fifths>0</fifths>
+        </key>
+        <time>
+          <beats>${timeSignatureBeats}</beats>
+          <beat-type>${timeSignatureBeatType}</beat-type>
+        </time>
+        <clef>
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
+      </attributes>
+      <direction placement="above">
+        <direction-type>
+          <metronome parentheses="no" default-x="-35" relative-y="20">
+            <beat-unit>quarter</beat-unit>
+            <per-minute>${tempo}</per-minute>
+          </metronome>
+        </direction-type>
+      </direction>
+    </measure>`;
+
+            groupToExport.forEach((note, noteIndex) => {
+                const currentNotePitch = noteToMusicXMLPitch(note);
+                if (!currentNotePitch) {
+                    console.error(`Could not parse note: ${note}`);
+                    return;
+                }
+
+                for (let i = 0; i < 3; i++) { // Repeat the two-measure pattern three times
+                    // Measure for A4-A4
+                    xmlContent += `
+    <measure number="${noteIndex * 6 + i * 2 + 2}"> <!-- Dynamic measure numbering -->
+      <note>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration> <!-- Eighth note (1 division) -->
+        <type>eighth</type>
+      </note>
+      <note>
+        <pitch>
+          <step>A</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>3</duration> <!-- Dotted quarter note (3 divisions) -->
+        <type>quarter</type>
+        <dot/>
+      </note>
+    </measure>`;
+
+                    // Measure for the current single note
+                    xmlContent += `
+    <measure number="${noteIndex * 6 + i * 2 + 3}">
+      <note>
+        <pitch>
+          <step>${currentNotePitch.step}</step>`;
+                    if (currentNotePitch.alter !== 0) {
+                        xmlContent += `
+          <alter>${currentNotePitch.alter}</alter>`;
+                    }
+                    xmlContent += `
+          <octave>${currentNotePitch.octave}</octave>
+        </pitch>
+        <duration>4</duration> <!-- Half note (4 divisions) -->
+        <type>half</type>
+      </note>
+    </measure>`;
+                }
+            });
+
+            xmlContent += `
+  </part>
+</score-partwise>`;
+
+            const blob = new Blob([xmlContent], { type: 'application/vnd.musicxml+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `练习组合_${selectedGroup + 1}.musicxml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Function to export all saved groups to PDF
+        async function exportAllToPDF() {
+            if (savedGroups.length === 0) {
+                alert('💡 暂无保存的组合可以导出为PDF！');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'p', // portrait
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 10;
+            let yOffset = margin;
+
+            // Add a loading indicator
+            const pdfButton = document.querySelector('button[onclick="exportAllToPDF()"]');
+            const originalButtonText = pdfButton.innerHTML;
+            pdfButton.innerHTML = '<span class="loading"></span> 正在生成PDF...';
+            pdfButton.disabled = true;
+
+            for (let i = 0; i < savedGroups.length; i++) {
+                const group = savedGroups[i];
+                const tempCanvas = document.createElement('canvas');
+
+                // Use the refactored renderScore to draw on the temporary canvas
+                renderScore(null, group, tempCanvas); // Pass null for containerId, and the tempCanvas
+
+                const imgData = tempCanvas.toDataURL('image/png');
+                const imgWidth = 150; // Fixed width for PDF image (mm)
+                const imgHeight = (tempCanvas.height / tempCanvas.width) * imgWidth; // Maintain aspect ratio
+
+                // Check if there's enough space on the current page
+                if (yOffset + imgHeight + 20 > pageHeight - margin && i > 0) { // 20 for title + spacing
+                    doc.addPage();
+                    yOffset = margin;
+                }
+
+                // Add title for the group
+                doc.setFontSize(14);
+                doc.setTextColor('#2d3748'); // Set text color
+                doc.text(`第 ${i + 1} 组 (${group.length} 个音符)`, margin, yOffset + 10);
+                yOffset += 15; // Space for title
+
+                doc.addImage(imgData, 'PNG', margin, yOffset, imgWidth, imgHeight);
+                yOffset += imgHeight + 10; // Add some padding after the image
+            }
+
+            doc.save('所有练习组合.pdf');
+
+            // Restore button state
+            pdfButton.innerHTML = originalButtonText;
+            pdfButton.disabled = false;
+        }
+
+        // Add keyboard shortcuts support
         document.addEventListener('keydown', function(e) {
             if (e.key === ' ' || e.key === 'Enter') {
                 e.preventDefault();
@@ -842,7 +1039,7 @@
             }
         });
 
-        // 添加提示工具提示
+        // Add tooltips
         function addTooltips() {
             const tooltips = {
                 'difficulty': '选择练习难度，影响变音记号出现频率',
@@ -865,8 +1062,8 @@
             renderSavedGroups();
             updateStats();
             addTooltips();
-            
-            // 添加欢迎提示
+
+            // Add welcome message
             setTimeout(() => {
                 if (selectedNotes.length === 0) {
                     const welcomeMsg = '🎹 欢迎使用单音音组生成器！\n\n请先点击键盘选择要练习的音符，然后点击"生成练习"开始吧！\n\n💡 小贴士：\n- 空格键快速生成\n- Ctrl+S 快速保存\n- Delete 删除选中组合';
@@ -877,4 +1074,3 @@
     </script>
 </body>
 </html>
-                
